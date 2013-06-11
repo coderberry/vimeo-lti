@@ -1,0 +1,8 @@
+<table class="table" style="font-size: 12px;">
+  <% params.keys.sort.each do |key| %>
+    <tr>
+      <td><%= key %></td>
+      <td><%= params[key] %></td>
+    </tr>
+  <% end %>
+</table>
