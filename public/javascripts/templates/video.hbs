@@ -1,0 +1,12 @@
+{{#if isLoaded}}
+
+<h2>{{title}}</h2>
+<img {{bindAttr src="thumbnail"}}>
+
+<h3>{{description}}</h3>
+
+{{else}}
+
+<p>Loading...</p>
+
+{{/if}}

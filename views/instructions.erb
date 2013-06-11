@@ -1,0 +1,15 @@
+<p>Launch the LTI tool at /lti/launch</p>
+<p>You can get the configuration XML here: <a href="/lti/config.xml">LTI Config</a></p>
+
+<h3>Parameters</h3>
+<%= erb :_params %>
+
+<h3>Session</h3>
+<table class="table" style="font-size: 12px;">
+  <% session.each do |k,v| %>
+    <tr>
+      <td><%= k %></td>
+      <td><%= v %></td>
+    </tr>
+  <% end %>
+</table>

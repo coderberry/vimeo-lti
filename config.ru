@@ -1,2 +1,2 @@
-require './vimeo_lti.rb'
+require File.expand_path('../config/environment', __FILE__)
 run VimeoLti

@@ -1,0 +1,135 @@
+.body {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: #555;
+}
+
+.well {
+    border-top: 0px;
+   border-left: 0px;
+  border-right: 0px;
+  -webkit-border-radius: 0px;
+     -moz-border-radius: 0px;
+          border-radius: 0px;
+  margin: 0px;
+}
+
+.thumbnail {
+  -webkit-border-radius: 0px;
+     -moz-border-radius: 0px;
+          border-radius: 0px;
+     -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+             box-shadow: none;
+  margin-bottom: 7px;
+}
+
+.thumb {
+  float: left;
+  margin-right: 10px;
+}
+
+ol {
+  margin: 0 10px;
+  padding: 0px;
+}
+
+ol li {
+  border-bottom: 1px dotted #d3d3d3;
+  padding-bottom: 12px;
+  padding-top: 8px;
+  list-style: none;
+}
+
+ol li:first-child {
+  border: 0px !important;
+  padding: 0px !important;
+}
+
+p {
+  display: block;
+  -webkit-margin-before: 1em;
+  -webkit-margin-after: 1em;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+}
+
+p:first-child, p.first {
+  margin-top: 0;
+}
+
+.data {
+  position: relative;
+}
+
+a, .faux_link {
+  font-weight: 700;
+  color: #123;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.data .duration {
+  position: absolute;
+  top: 4px;
+  right: 0px;
+  padding: 1px 1px 0;
+  background-color: #f3f4f4;
+  border: 1px solid #e6e7e8;
+  font-weight: 400;
+  text-transform: uppercase;
+  text-shadow: 1px 1px rgba(255,255,255,.5);
+  font-size: 11px;
+  line-height: 11px;
+  white-space: nowrap;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  -o-border-radius: 2px;
+  -ms-border-radius: 2px;
+  border-radius: 2px;
+  vertical-align: text-bottom;
+  color: #9da2a8;
+}
+
+.title {
+  font-size: 16px;
+  line-height: 1.2;
+  margin: 0px;
+}
+.meta {
+  font-size: 11px;
+  line-height: 1;
+  color: #9da2a8;
+  margin-top: 5px;
+}
+.meta a {
+  font-weight: 400;
+}
+
+.count {
+  margin-top: 8px;
+  color: #cdd4db;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.count .plays {
+  color: #6c9;
+}
+.count .likes {
+  color: #fc575e;
+}
+.count .comments {
+  color: #4bf;
+}
+.description {
+  margin: 6px 0 3px;
+  line-height: 18px;
+  overflow: hidden;
+}
+
+.thumbnail_med_wide {
+  width: 150px;
+  height: 84px;
+}
