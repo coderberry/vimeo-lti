@@ -9,6 +9,6 @@
   {{/each}}
 </ol>
 
-{{#if isLoading}}
-... loading ...
-{{/if}}
+{{#unless videos.isLoaded}}
+{{partial 'loader'}}
+{{/unless}}

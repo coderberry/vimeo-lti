@@ -1,4 +1,9 @@
 var VideoController = Ember.ObjectController.extend({
+
+  chooseVideoLink: function() {
+    return "/api/choose/" + this.get('id');
+  }.property(),
+
   thumbnail: function() {
     var thumbs = this.get('model.thumbnails.thumbnail');
     if (thumbs.length > 1) {
@@ -41,6 +46,17 @@ var VideoController = Ember.ObjectController.extend({
       return num;
     }
   },
+
+  shortDescription: function() {
+    desc = this.get('model.description');
+    len = 150;
+    if (desc.length < len) {
+      return desc;
+    } else {
+      return this.get('model.description').substring(0, len - 4) + ' ...';
+    }
+    
+  }.property('model.description'),
 
   secondsToDisplayMinutes: function(seconds) {
     minVar = Math.floor(seconds/60);

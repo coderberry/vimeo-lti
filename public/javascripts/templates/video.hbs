@@ -1,10 +1,8 @@
 {{#if isLoaded}}
-
 <div id="video">
-
   <div class="above_link clearfix">
-    <a href="javascript:history.back();">&laquo; search results</a>
-    <button class="btn btn-mini btn-primary pull-right">Embed Video</button>
+    <a href="javascript:history.back();" class="back_button">&laquo; search results</a>
+    <a {{bindAttr href="chooseVideoLink"}} class="btn btn-mini btn-primary pull-right">Embed Video</a>
   </div>
 
   <div class="flex-video widescreen vimeo">
@@ -15,7 +13,5 @@
 </div>
 
 {{else}}
-
-<p>Loading...</p>
-
+{{partial 'loader'}}
 {{/if}}

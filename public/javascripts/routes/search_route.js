@@ -1,5 +1,7 @@
 var SearchRoute = Ember.Route.extend({
 
+  isLoading: false,
+
   setupController: function(controller, model) {
     this.controllerFor('application').set('q', model.q);
     controller.set('model', {

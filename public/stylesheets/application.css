@@ -7,7 +7,7 @@ body {
 }
 
 #wrapper {
-  width: 500px;
+  max-width: 500px;
 }
 
 header {
@@ -155,6 +155,7 @@ a, .faux_link {
   height: 0;
   margin-bottom: 16px;
   overflow: hidden;
+  background: #fff url(/images/loading.png) 50% 50% no-repeat;
 }
  
 .flex-video.widescreen { padding-bottom: 57.25%; }
@@ -180,7 +181,7 @@ a, .faux_link {
 .above_link {
   margin-bottom: 10px;
 }
-.above_link a {
+.above_link a.back_button {
   font-weight: normal;
   color: #4bf;
 }

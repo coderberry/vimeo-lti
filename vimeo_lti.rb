@@ -17,7 +17,27 @@ class VimeoLti < Sinatra::Base
     consumer_secret: nil,
     title:           'Vimeo',
     description:     'Vimeo LTI application',
-    nonce_validator: ->(nonce) { !$ns.include?(nonce, 60*60) }
+    nonce_validator: ->(nonce) { !$ns.include?(nonce, 60*60) },
+    extensions: {
+      'canvas.instructure.com' => {
+        editor_button: {
+          url: "http://localhost:3000/",
+          icon_url: "http://localhost:3000/images/vimeo_icon.png",
+          text: "Vimeo",
+          selection_width: 500,
+          selection_height: 500,
+          enabled: true
+        },
+        resource_selection: {
+          url: "http://localhost:3000/",
+          icon_url: "http://localhost:3000/images/vimeo_icon.png",
+          text: "Vimeo",
+          selection_width: 500,
+          selection_height: 500,
+          enabled: true
+        }
+      }
+    }
 
   def initialize
     super
@@ -25,6 +45,7 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/' do
+    puts session.inspect
     # if session[:launch_params]
       erb :index, :layout => false
     # else
@@ -33,6 +54,8 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/search' do
+    puts session.inspect
+
     content_type :json
     if params[:q]
       # return nil unless params[:q]
@@ -55,6 +78,9 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/video/:video_id.?:format?' do
+
+    puts session.inspect
+
     content_type :json
     results = @client.get_info(params[:video_id])
     begin
@@ -65,10 +91,24 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/video/:video_id/oembed' do
+    puts session.inspect
+
     content_type :json
     video_url = "http://vimeo.com/#{params[:video_id]}"
     oe = OEmbed::Providers::Vimeo.get(video_url)
     oe.fields.to_json
+  end
+
+  get '/api/choose/:video_id' do
+    @url = 'embed_type=oembed&url=http://vimeo.com/' + params[:video_id] + '&'
+    @url += 'endpoint=http://vimeo.com/api/oembed.xml'
+    if session[:launch_params]
+      base_url = session[:launch_params]['launch_presentation_return_url']
+      base_url += (url.include?('?') ? '&' : '?')
+      redirect "#{base_url}#{@url}"
+    else
+      erb :redirected
+    end
   end
 
 end

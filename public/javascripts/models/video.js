@@ -13,7 +13,7 @@ var Video = Ember.Object.extend({
 Video.reopenClass({
 
   models: Ember.ArrayProxy.create({content: []}),
-
+  isLoading: false,
   resultSets: {},
 
   findQuery: function(params) {
@@ -43,7 +43,7 @@ Video.reopenClass({
   },
 
   fetchQuery: function(params) {
-    var results = Ember.ArrayProxy.create({content: []});
+    var results = Ember.ArrayProxy.create({isLoaded: false, content: []});
     $.getJSON('/api/search', params, function(res) {
       for (var i = 0, l = res.length; i < l; i++) {
         var model = this.models.findProperty('id', res[i].id);
@@ -51,6 +51,7 @@ Video.reopenClass({
         model.set('isLoaded', true);
         results.addObject(model);
       }
+      results.set('isLoaded', true);
     }.bind(this));
     return results;
   },

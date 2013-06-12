@@ -43,13 +43,13 @@ module.exports = DS.Store.extend({
 });
 
 
-});require.register("controllers/search_controller.js", function(module, exports, require, global){
-var SearchController = Ember.ObjectController.extend();
-
-module.exports = SearchController;
-
 });require.register("controllers/video_controller.js", function(module, exports, require, global){
 var VideoController = Ember.ObjectController.extend({
+
+  chooseVideoLink: function() {
+    return "/api/choose/" + this.get('id');
+  }.property(),
+
   thumbnail: function() {
     var thumbs = this.get('model.thumbnails.thumbnail');
     if (thumbs.length > 1) {
@@ -93,6 +93,17 @@ var VideoController = Ember.ObjectController.extend({
     }
   },
 
+  shortDescription: function() {
+    desc = this.get('model.description');
+    len = 150;
+    if (desc.length < len) {
+      return desc;
+    } else {
+      return this.get('model.description').substring(0, len - 4) + ' ...';
+    }
+    
+  }.property('model.description'),
+
   secondsToDisplayMinutes: function(seconds) {
     minVar = Math.floor(seconds/60);
     secVar = seconds % 60;
@@ -110,7 +121,6 @@ var App = require('./config/app');
 require('./templates');
 
 
-App.SearchController = require('./controllers/search_controller');
 App.VideoController = require('./controllers/video_controller');
 App.Video = require('./models/video');
 App.ApplicationRoute = require('./routes/application_route');
@@ -126,6 +136,7 @@ module.exports = App;
 });require.register("models/video.js", function(module, exports, require, global){
 var Video = Ember.Object.extend({
   isLoaded: false,
+  currentPage: 1,
 
   oembed: function() {
     var model = this;
@@ -138,7 +149,7 @@ var Video = Ember.Object.extend({
 Video.reopenClass({
 
   models: Ember.ArrayProxy.create({content: []}),
-
+  isLoading: false,
   resultSets: {},
 
   findQuery: function(params) {
@@ -168,7 +179,7 @@ Video.reopenClass({
   },
 
   fetchQuery: function(params) {
-    var results = Ember.ArrayProxy.create({content: []});
+    var results = Ember.ArrayProxy.create({isLoaded: false, content: []});
     $.getJSON('/api/search', params, function(res) {
       for (var i = 0, l = res.length; i < l; i++) {
         var model = this.models.findProperty('id', res[i].id);
@@ -176,6 +187,7 @@ Video.reopenClass({
         model.set('isLoaded', true);
         results.addObject(model);
       }
+      results.set('isLoaded', true);
     }.bind(this));
     return results;
   },
@@ -194,6 +206,18 @@ Video.reopenClass({
     var model = this.create(properties);
     this.models.addObject(model);
     return model;
+  },
+
+  fetchMore: function() {
+    var params = { }
+    $.getJSON('/api/search', params, function(res) {
+      for (var i = 0, l = res.length; i < l; i++) {
+        var model = this.models.findProperty('id', res[i].id);
+        if (!model) model = this.createRecord(res[i]);
+        model.set('isLoaded', true);
+        results.addObject(model);
+      }
+    }.bind(this));
   }
 
 });
@@ -218,7 +242,6 @@ var ApplicationRoute = Ember.Route.extend({
       } else {
         this.transitionTo('index');
       }
-      
     }
   }
 });
@@ -228,12 +251,13 @@ module.exports = ApplicationRoute;
 });require.register("routes/search_route.js", function(module, exports, require, global){
 var SearchRoute = Ember.Route.extend({
 
+  isLoading: false,
+
   setupController: function(controller, model) {
     this.controllerFor('application').set('q', model.q);
     controller.set('model', {
       q: model.q,
-      videos: App.Video.findQuery({q: model.q}),
-      isLoading: false
+      videos: App.Video.findQuery({q: model.q})
     });
   },
   
@@ -257,10 +281,16 @@ var VideoRoute = Ember.Route.extend({
   model: function(params) {
     return App.Video.find(params.video_id);
   }
+
+  // events: {
+  //   chooseVideoLink: function(event) {
+  //     debugger
+  //     return "/api/choose/" + this.get('id');
+  //   }
+  // }
 });
 
 module.exports = VideoRoute;
-
 
 });require.register("templates.js", function(module, exports, require, global){
 
@@ -321,9 +351,19 @@ function program1(depth0,data) {
   data.buffer.push(" Comments</span>\n  </p>\n  <p class=\"description\">");
   hashTypes = {};
   hashContexts = {};
-  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "description", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "shortDescription", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
   data.buffer.push("</p>\n</div>");
   return buffer;
+  
+});
+
+Ember.TEMPLATES['_loader'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [3,'>= 1.0.0-rc.4'];
+helpers = helpers || Ember.Handlebars.helpers; data = data || {};
+  
+
+
+  data.buffer.push("<div class=\"text-center\" style=\"padding-top: 15px;\">\n  <img src=\"/images/loading.gif\" width=\"32\" height=\"32\" />\n</div>");
   
 });
 
@@ -407,8 +447,14 @@ function program2(depth0,data) {
 
 function program4(depth0,data) {
   
-  
-  data.buffer.push("\n... loading ...\n");
+  var buffer = '', stack1, hashTypes, hashContexts, options;
+  data.buffer.push("\n");
+  hashTypes = {};
+  hashContexts = {};
+  options = {hash:{},contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers.partial),stack1 ? stack1.call(depth0, "loader", options) : helperMissing.call(depth0, "partial", "loader", options))));
+  data.buffer.push("\n");
+  return buffer;
   }
 
   data.buffer.push("<ol id=\"results\">\n  ");
@@ -421,7 +467,7 @@ function program4(depth0,data) {
   data.buffer.push("\n</ol>\n\n");
   hashTypes = {};
   hashContexts = {};
-  stack1 = helpers['if'].call(depth0, "isLoading", {hash:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  stack1 = helpers.unless.call(depth0, "videos.isLoaded", {hash:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   return buffer;
   
@@ -430,12 +476,18 @@ function program4(depth0,data) {
 Ember.TEMPLATES['video'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [3,'>= 1.0.0-rc.4'];
 helpers = helpers || Ember.Handlebars.helpers; data = data || {};
-  var buffer = '', stack1, hashTypes, hashContexts, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this;
+  var buffer = '', stack1, hashTypes, hashContexts, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
 
 function program1(depth0,data) {
   
   var buffer = '', stack1, hashContexts, hashTypes, options;
-  data.buffer.push("\n\n<div id=\"video\">\n\n  <div class=\"above_link clearfix\">\n    <a href=\"javascript:history.back();\">&laquo; search results</a>\n    <button class=\"btn btn-mini btn-primary pull-right\">Embed Video</button>\n  </div>\n\n  <div class=\"flex-video widescreen vimeo\">\n    ");
+  data.buffer.push("\n<div id=\"video\">\n  <div class=\"above_link clearfix\">\n    <a href=\"javascript:history.back();\" class=\"back_button\">&laquo; search results</a>\n    <a ");
+  hashContexts = {'href': depth0};
+  hashTypes = {'href': "STRING"};
+  data.buffer.push(escapeExpression(helpers.bindAttr.call(depth0, {hash:{
+    'href': ("chooseVideoLink")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(" class=\"btn btn-mini btn-primary pull-right\">Embed Video</a>\n  </div>\n\n  <div class=\"flex-video widescreen vimeo\">\n    ");
   hashContexts = {'unescaped': depth0};
   hashTypes = {'unescaped': "STRING"};
   stack1 = helpers._triageMustache.call(depth0, "oembed.html", {hash:{
@@ -453,8 +505,14 @@ function program1(depth0,data) {
 
 function program3(depth0,data) {
   
-  
-  data.buffer.push("\n\n<p>Loading...</p>\n\n");
+  var buffer = '', stack1, hashTypes, hashContexts, options;
+  data.buffer.push("\n");
+  hashTypes = {};
+  hashContexts = {};
+  options = {hash:{},contexts:[depth0],types:["STRING"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  data.buffer.push(escapeExpression(((stack1 = helpers.partial),stack1 ? stack1.call(depth0, "loader", options) : helperMissing.call(depth0, "partial", "loader", options))));
+  data.buffer.push("\n");
+  return buffer;
   }
 
   hashTypes = {};
@@ -49803,7 +49861,7 @@ var SearchView = Ember.View.extend({
   },
 
   didScroll: function() {
-    console.log(window.scrollY);
+    // console.log(window.scrollY);
     // PaginatedCollectionView.coffee
   },
 

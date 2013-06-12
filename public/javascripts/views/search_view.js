@@ -7,7 +7,7 @@ var SearchView = Ember.View.extend({
   },
 
   didScroll: function() {
-    console.log(window.scrollY);
+    // console.log(window.scrollY);
     // PaginatedCollectionView.coffee
   },
 
