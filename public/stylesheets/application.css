@@ -1,18 +1,28 @@
-.body {
+body {
   font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size: 14px;
   line-height: 20px;
   color: #555;
+  padding-bottom: 40px;
 }
 
-.well {
-    border-top: 0px;
-   border-left: 0px;
-  border-right: 0px;
-  -webkit-border-radius: 0px;
-     -moz-border-radius: 0px;
-          border-radius: 0px;
+#wrapper {
+  width: 500px;
+}
+
+header {
+  background: #F0F1F4 url('/images/vimeo.png') 10px 9px no-repeat;
+  border-bottom: 1px solid #D8DDE1;
+}
+
+.form-search {
+  float: right;
   margin: 0px;
+  padding: 10px;
+}
+
+.search {
+  width: 270px;
 }
 
 .thumbnail {
@@ -37,8 +47,8 @@ ol {
 
 ol li {
   border-bottom: 1px dotted #d3d3d3;
-  padding-bottom: 12px;
-  padding-top: 8px;
+  padding-bottom: 5px;
+  padding-top: 10px;
   list-style: none;
 }
 
@@ -132,4 +142,45 @@ a, .faux_link {
 .thumbnail_med_wide {
   width: 150px;
   height: 84px;
+}
+
+.username {
+  font-weight: 700;
+  color: #123;
+}
+.flex-video {
+  position: relative;
+  padding-top: 25px;
+  padding-bottom: 67.5%;
+  height: 0;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+ 
+.flex-video.widescreen { padding-bottom: 57.25%; }
+.flex-video.vimeo { padding-top: 0; }
+ 
+.flex-video iframe,
+.flex-video object,
+.flex-video embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+@media only screen and (max-device-width: 800px), only screen and (device-width: 1024px) and (device-height: 600px), only screen and (width: 1280px) and (orientation: landscape), only screen and (device-width: 800px), only screen and (max-width: 767px) {
+  .flex-video { padding-top: 0; }
+}
+
+#video {
+  padding: 10px;
+}
+
+.above_link {
+  margin-bottom: 10px;
+}
+.above_link a {
+  font-weight: normal;
+  color: #4bf;
 }

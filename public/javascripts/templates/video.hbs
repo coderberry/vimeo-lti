@@ -1,9 +1,18 @@
 {{#if isLoaded}}
 
-<h2>{{title}}</h2>
-<img {{bindAttr src="thumbnail"}}>
+<div id="video">
 
-<h3>{{description}}</h3>
+  <div class="above_link clearfix">
+    <a href="javascript:history.back();">&laquo; search results</a>
+    <button class="btn btn-mini btn-primary pull-right">Embed Video</button>
+  </div>
+
+  <div class="flex-video widescreen vimeo">
+    {{{oembed.html}}}
+  </div>
+
+  {{partial 'data'}}
+</div>
 
 {{else}}
 

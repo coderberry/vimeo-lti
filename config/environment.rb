@@ -9,6 +9,7 @@ require 'rack/lti'
 require 'find'
 require 'json'
 require 'vimeo'
+require 'oembed'
 
 %w{config/initializers lib}.each do |path|
   Find.find(path) { |f| require f if File.extname(f) == '.rb' }

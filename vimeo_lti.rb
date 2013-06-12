@@ -39,9 +39,9 @@ class VimeoLti < Sinatra::Base
       begin
         results = @client.search(params[:q], {
           :page          => params[:page] || 1,
-          :per_page      => 12,
+          :per_page      => 24,
           :full_response => 1,
-          :sort          => "newest",
+          :sort          => params[:sort] || "relevant",
           :user_id       => nil
         })
         results['videos']['video'].to_json
@@ -52,6 +52,23 @@ class VimeoLti < Sinatra::Base
     else
       [].to_json
     end
+  end
+
+  get '/api/video/:video_id.?:format?' do
+    content_type :json
+    results = @client.get_info(params[:video_id])
+    begin
+      results['video'].first.to_json
+    rescue
+      {}.to_json
+    end
+  end
+
+  get '/api/video/:video_id/oembed' do
+    content_type :json
+    video_url = "http://vimeo.com/#{params[:video_id]}"
+    oe = OEmbed::Providers::Vimeo.get(video_url)
+    oe.fields.to_json
   end
 
 end

@@ -1,21 +1,14 @@
 <ol id="results">
   {{#each videos itemController="video"}}
   <li class="clearfix">
-    {{#linkTo "video" this classNames="thumb"}}<img {{bindAttr src="thumbnail"}} class="thumbnail thumbnail_med_wide">{{/linkTo}}
-    <div class="data">
-      <p class="title">
-        {{#linkTo "video" this}}{{title}}{{/linkTo}}
-      </p>
-      <div class="duration">{{minutes}}</div>
-      <p class="meta">
-        from <a href="#">{{userName}}</a> /
-        Added <time {{bindAttr datetime=upload_date title=upload_date}}>{{addedTimeAgo}}</time>
-      </p>
-      <p class="count">
-        <span class="plays">{{number_of_plays}} Plays</span> / <span class="likes">{{number_of_likes}} Likes</span> / <span class="comments">{{number_of_comments}} Comments</span>
-      </p>
-      <p class="description">{{description}}</p>
-    </div>
+    {{#linkTo "video" this classNames="thumb"}}
+      <img {{bindAttr src="thumbnail"}} class="thumbnail thumbnail_med_wide">
+    {{/linkTo}}
+    {{partial 'data'}}
   </li>
   {{/each}}
 </ol>
+
+{{#if isLoading}}
+... loading ...
+{{/if}}

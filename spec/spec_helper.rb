@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'vimeo_lti.rb')
+require File.join(File.dirname(__FILE__), '../config/environment.rb')
 
 require 'sinatra'
 require 'rack/test'

@@ -29,7 +29,6 @@ var VideoController = Ember.ObjectController.extend({
     return this.secondsToDisplayMinutes(this.get('duration'))
   }.property('model.duration'),
 
-
   addedTimeAgo: function() {
     // 2013-06-06 13:56:38
     moment(this.get('model.upload_date'), 'YYYY-MM-DD HH:mm:ss').fromNow()
@@ -51,4 +50,3 @@ var VideoController = Ember.ObjectController.extend({
 });
 
 module.exports = VideoController;
-
