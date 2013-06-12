@@ -6,10 +6,10 @@ class VimeoLti < Sinatra::Base
   enable :sessions
   set :protection, :except => :frame_options
 
-  set :consumer_key,      ENV['VIMEO_CONSUMER_KEY']
-  set :consumer_secret,   ENV['VIMEO_CONSUMER_SECRET']
-  set :token,             ENV['VIMEO_TOKEN']
-  set :secret,            ENV['VIMEO_SECRET']
+  set :consumer_key,    ENV['VIMEO_CONSUMER_KEY']
+  set :consumer_secret, ENV['VIMEO_CONSUMER_SECRET']
+  set :token,           ENV['VIMEO_TOKEN']
+  set :secret,          ENV['VIMEO_SECRET']
 
   use Rack::LTI,
     consumer_key:    nil,
