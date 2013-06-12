@@ -21,16 +21,16 @@ class VimeoLti < Sinatra::Base
     extensions: {
       'canvas.instructure.com' => {
         editor_button: {
-          url: "http://localhost:3000/",
-          icon_url: "http://localhost:3000/images/vimeo_icon.png",
+          url: "http://vimeo-lti.herokuapp.com/",
+          icon_url: "http://vimeo-lti.herokuapp.com/images/vimeo_icon.png",
           text: "Vimeo",
           selection_width: 500,
           selection_height: 500,
           enabled: true
         },
         resource_selection: {
-          url: "http://localhost:3000/",
-          icon_url: "http://localhost:3000/images/vimeo_icon.png",
+          url: "http://vimeo-lti.herokuapp.com/",
+          icon_url: "http://vimeo-lti.herokuapp.com/images/vimeo_icon.png",
           text: "Vimeo",
           selection_width: 500,
           selection_height: 500,
