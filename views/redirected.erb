@@ -1,13 +1,20 @@
 <p>Launch the LTI tool at /lti/launch</p>
 <p>You can get the configuration XML here: <a href="/lti/config.xml">LTI Config</a></p>
 
-<h3>Redirect QueryString</h3>
-<%= @url %>
+<h4>LTI Redirect Data</h4>
+<table class="table" style="font-size: 12px;">
+  <% @query.each do |k,v| %>
+    <tr>
+      <td><%= k %></td>
+      <td><%= v %></td>
+    </tr>
+  <% end %>
+</table>
 
-<h3>Parameters</h3>
+<h4>Parameters</h4>
 <%= erb :_params %>
 
-<h3>Session</h3>
+<h4>Session</h4>
 <table class="table" style="font-size: 12px;">
   <% session.each do |k,v| %>
     <tr>

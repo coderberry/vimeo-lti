@@ -47,7 +47,7 @@ module.exports = DS.Store.extend({
 var VideoController = Ember.ObjectController.extend({
 
   chooseVideoLink: function() {
-    return "/api/choose/" + this.get('id');
+    return "/api/choose/" + this.get('id') + "?title=" + this.get('title');
   }.property(),
 
   thumbnail: function() {
@@ -281,13 +281,6 @@ var VideoRoute = Ember.Route.extend({
   model: function(params) {
     return App.Video.find(params.video_id);
   }
-
-  // events: {
-  //   chooseVideoLink: function(event) {
-  //     debugger
-  //     return "/api/choose/" + this.get('id');
-  //   }
-  // }
 });
 
 module.exports = VideoRoute;

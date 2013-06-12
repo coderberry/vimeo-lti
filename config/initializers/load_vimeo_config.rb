@@ -1,1 +1,0 @@
-VIMEO_CONFIG = YAML.load(File.read(File.expand_path("../../vimeo_config.yml", __FILE__)))

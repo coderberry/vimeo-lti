@@ -3,14 +3,13 @@ $ns = NonceStore.instance
 class AuthorizationFailureException < Exception; end
 
 class VimeoLti < Sinatra::Base
-  
   enable :sessions
   set :protection, :except => :frame_options
 
-  set :consumer_key,    VIMEO_CONFIG['consumer_key']
-  set :consumer_secret, VIMEO_CONFIG['consumer_secret']
-  set :token,           VIMEO_CONFIG['token']
-  set :secret,          VIMEO_CONFIG['secret']
+  set :consumer_key,      ENV['VIMEO_CONSUMER_KEY']
+  set :consumer_secret,   ENV['VIMEO_CONSUMER_SECRET']
+  set :token,             ENV['VIMEO_TOKEN']
+  set :secret,            ENV['VIMEO_SECRET']
 
   use Rack::LTI,
     consumer_key:    nil,
@@ -21,16 +20,14 @@ class VimeoLti < Sinatra::Base
     extensions: {
       'canvas.instructure.com' => {
         editor_button: {
-          url: "http://vimeo-lti.herokuapp.com/",
-          icon_url: "http://vimeo-lti.herokuapp.com/images/vimeo_icon.png",
+          icon_url: "#{ENV['HOST']}/images/vimeo_icon.png",
           text: "Vimeo",
           selection_width: 500,
           selection_height: 500,
           enabled: true
         },
         resource_selection: {
-          url: "http://vimeo-lti.herokuapp.com/",
-          icon_url: "http://vimeo-lti.herokuapp.com/images/vimeo_icon.png",
+          icon_url: "#{ENV['HOST']}/images/vimeo_icon.png",
           text: "Vimeo",
           selection_width: 500,
           selection_height: 500,
@@ -45,17 +42,10 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/' do
-    puts session.inspect
-    # if session[:launch_params]
-      erb :index, :layout => false
-    # else
-    #   erb :instructions
-    # end
+    erb :index, :layout => false
   end
 
   get '/api/search' do
-    puts session.inspect
-
     content_type :json
     if params[:q]
       # return nil unless params[:q]
@@ -78,9 +68,6 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/video/:video_id.?:format?' do
-
-    puts session.inspect
-
     content_type :json
     results = @client.get_info(params[:video_id])
     begin
@@ -91,8 +78,6 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/video/:video_id/oembed' do
-    puts session.inspect
-
     content_type :json
     video_url = "http://vimeo.com/#{params[:video_id]}"
     oe = OEmbed::Providers::Vimeo.get(video_url)
@@ -100,12 +85,17 @@ class VimeoLti < Sinatra::Base
   end
 
   get '/api/choose/:video_id' do
-    @url = 'embed_type=oembed&url=http://vimeo.com/' + params[:video_id] + '&'
-    @url += 'endpoint=http://vimeo.com/api/oembed.xml'
+    @query = {
+      embed_type: 'iframe',
+      url: "http://player.vimeo.com/video/#{params[:video_id]}",
+      title: params[:title],
+      width: 640,
+      height: 380
+    }
     if session[:launch_params]
       base_url = session[:launch_params]['launch_presentation_return_url']
       base_url += (url.include?('?') ? '&' : '?')
-      redirect "#{base_url}#{@url}"
+      redirect "#{base_url}#{query.to_query}"
     else
       erb :redirected
     end

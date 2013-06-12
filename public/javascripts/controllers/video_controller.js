@@ -1,7 +1,7 @@
 var VideoController = Ember.ObjectController.extend({
 
   chooseVideoLink: function() {
-    return "/api/choose/" + this.get('id');
+    return "/api/choose/" + this.get('id') + "?title=" + this.get('title');
   }.property(),
 
   thumbnail: function() {
