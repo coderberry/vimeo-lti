@@ -95,9 +95,16 @@ class VimeoLti < Sinatra::Base
     if session[:launch_params]
       base_url = session[:launch_params]['launch_presentation_return_url']
       base_url += (url.include?('?') ? '&' : '?')
-      redirect "#{base_url}#{query.to_query}"
+      redirect "#{base_url}#{hash_to_querystring(@query)}"
     else
       erb :redirected
+    end
+  end
+
+   def hash_to_querystring(hash)
+    hash.keys.inject('') do |query_string, key|
+      query_string << '&' unless key == hash.keys.first
+      query_string << "#{URI.encode(key.to_s)}=#{URI.encode(hash[key])}"
     end
   end
 

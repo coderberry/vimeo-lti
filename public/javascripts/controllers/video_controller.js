@@ -35,9 +35,8 @@ var VideoController = Ember.ObjectController.extend({
   }.property('model.duration'),
 
   addedTimeAgo: function() {
-    // 2013-06-06 13:56:38
-    moment(this.get('model.upload_date'), 'YYYY-MM-DD HH:mm:ss').fromNow()
-  }.property('model.upload_date'),
+    return moment(this.get('model.upload_date'), 'YYYY-MM-DD HH:mm:ss').fromNow()
+  }.property(),
 
   padNumber: function(num) {
     if (num < 10) {

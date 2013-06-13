@@ -9,6 +9,7 @@ end
 
 require 'bundler'
 Bundler.require(:default, ENV['RACK_ENV'].to_sym)
+require 'uri'
 require 'sinatra/base'
 require 'rack/lti'
 require 'find'

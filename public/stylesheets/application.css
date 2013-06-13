@@ -10,6 +10,10 @@ body {
   max-width: 500px;
 }
 
+.outer-pad {
+  padding: 20px;
+}
+
 header {
   background: #F0F1F4 url('/images/vimeo.png') 10px 9px no-repeat;
   border-bottom: 1px solid #D8DDE1;

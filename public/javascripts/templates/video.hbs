@@ -9,7 +9,20 @@
     {{{oembed.html}}}
   </div>
 
-  {{partial 'data'}}
+  <div class="data">
+    <h2 class="title">{{#linkTo "video" this}}{{title}}{{/linkTo}}</h2>
+    <div class="duration">{{minutes}}</div>
+    <p class="meta">
+      from <span class="username">{{userName}}</span> /
+      Added <time {{bindAttr datetime=upload_date title=upload_date}}>{{addedTimeAgo}}</time>
+    </p>
+    <p class="count">
+      <span class="plays">{{number_of_plays}} Plays</span> /
+      <span class="likes">{{number_of_likes}} Likes</span> /
+      <span class="comments">{{number_of_comments}} Comments</span>
+    </p>
+    <p class="description">{{description}}</p>
+  </div>
 </div>
 
 {{else}}
