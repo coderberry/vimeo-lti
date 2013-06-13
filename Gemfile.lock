@@ -17,6 +17,7 @@ GEM
     multi_json (1.7.6)
     multi_xml (0.5.4)
     multipart-post (1.2.0)
+    newrelic_rpm (3.6.0.78)
     oauth (0.4.7)
     rack (1.5.2)
     rack-lti (0.0.2)
@@ -54,6 +55,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  newrelic_rpm
   rack-lti
   rack-test
   rspec
