@@ -49,10 +49,14 @@ var SearchRoute = Ember.Route.extend({
         page: App.SearchCriteria.get('page'), 
         sort: filter.get('id') 
       });
+    },
+
+    more: function() {
+      console.log("pagination to come");
+      // videos = this.controllerFor('search').get('model.videos')
     }
   }
   
 });
 
 module.exports = SearchRoute;
-

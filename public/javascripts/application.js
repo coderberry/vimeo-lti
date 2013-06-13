@@ -5,7 +5,7 @@ require('../vendor/jquery');
 require('../vendor/handlebars');
 require('../vendor/ember');
 
-var App = Ember.Application.create({ LOG_TRANSITIONS: true });
+var App = Ember.Application.create();
 
 App.SearchCriteria = Ember.ArrayProxy.create({
   content: [
@@ -159,7 +159,7 @@ var Video = Ember.Object.extend({
   currentPage: function() {
     return App.SearchCriteria.get('page');
   }.property(),
-  
+
   oembed: function() {
     var model = this;
     $.getJSON('/api/video/' + this.get('id') + '/oembed', function(oembedRes) {
@@ -319,13 +319,17 @@ var SearchRoute = Ember.Route.extend({
         page: App.SearchCriteria.get('page'), 
         sort: filter.get('id') 
       });
+    },
+
+    more: function() {
+      console.log("pagination to come");
+      // videos = this.controllerFor('search').get('model.videos')
     }
   }
   
 });
 
 module.exports = SearchRoute;
-
 
 });require.register("routes/video_route.js", function(module, exports, require, global){
 var VideoRoute = Ember.Route.extend({
@@ -49982,14 +49986,21 @@ var SearchView = Ember.View.extend({
     });
   },
 
-  didScroll: function() {
-    // console.log(window.scrollY);
-    // PaginatedCollectionView.coffee
+  willDestroyElement: function() {
+    $(window).unbind("scroll");
   },
 
-  fetchMore: function() {
-    var model = this.get('controller.model');
-    model.fetchMore();
+  didScroll: function() {
+    if(this.isScrolledToBottom()) {
+      this.get('controller').send('more');
+    }
+  },
+
+  isScrolledToBottom: function() {
+    var distanceToTop = $(document).height() - $(window).height(),
+        top           = $(document).scrollTop();
+
+    return top === distanceToTop;
   }
 });
 

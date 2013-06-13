@@ -3,7 +3,7 @@ var Video = Ember.Object.extend({
   currentPage: function() {
     return App.SearchCriteria.get('page');
   }.property(),
-  
+
   oembed: function() {
     var model = this;
     $.getJSON('/api/video/' + this.get('id') + '/oembed', function(oembedRes) {

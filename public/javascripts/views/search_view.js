@@ -6,14 +6,21 @@ var SearchView = Ember.View.extend({
     });
   },
 
-  didScroll: function() {
-    // console.log(window.scrollY);
-    // PaginatedCollectionView.coffee
+  willDestroyElement: function() {
+    $(window).unbind("scroll");
   },
 
-  fetchMore: function() {
-    var model = this.get('controller.model');
-    model.fetchMore();
+  didScroll: function() {
+    if(this.isScrolledToBottom()) {
+      this.get('controller').send('more');
+    }
+  },
+
+  isScrolledToBottom: function() {
+    var distanceToTop = $(document).height() - $(window).height(),
+        top           = $(document).scrollTop();
+
+    return top === distanceToTop;
   }
 });
 

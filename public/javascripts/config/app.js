@@ -2,7 +2,7 @@ require('../vendor/jquery');
 require('../vendor/handlebars');
 require('../vendor/ember');
 
-var App = Ember.Application.create({ LOG_TRANSITIONS: true });
+var App = Ember.Application.create();
 
 App.SearchCriteria = Ember.ArrayProxy.create({
   content: [
