@@ -91,7 +91,7 @@ class VimeoLti < Sinatra::Base
       url: "http://player.vimeo.com/video/#{params[:video_id]}",
       title: params[:title],
       width: 640,
-      height: 380
+      height: 360
     }
     if session[:launch_params]
       base_url = session[:launch_params]['launch_presentation_return_url']
