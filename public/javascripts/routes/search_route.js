@@ -18,7 +18,6 @@ var SearchRoute = Ember.Route.extend({
   },
   
   model: function(params) {
-    console.log(params);
     rawParams = params.q;
     splitParams = rawParams.split('?');
     ret = { q: decodeURIComponent(splitParams[0]) };
