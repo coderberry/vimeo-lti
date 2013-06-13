@@ -7,7 +7,7 @@ body {
 }
 
 #wrapper {
-  max-width: 500px;
+  min-width: 470px;
 }
 
 .outer-pad {
@@ -187,5 +187,20 @@ a, .faux_link {
 }
 .above_link a.back_button {
   font-weight: normal;
+  color: #4bf;
+}
+
+#filters {
+  font-size: 12px;
+  border-bottom: 1px dotted #d3d3d3;
+  margin-bottom: 0px;
+}
+#filters li.disabled a {
+  color: #4bf;
+}
+#filters li a:hover {
+  color: black;
+}
+#filters li.disabled a:hover {
   color: #4bf;
 }

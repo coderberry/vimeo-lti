@@ -1,7 +1,9 @@
 var Video = Ember.Object.extend({
   isLoaded: false,
-  currentPage: 1,
-
+  currentPage: function() {
+    return App.SearchCriteria.get('page');
+  }.property(),
+  
   oembed: function() {
     var model = this;
     $.getJSON('/api/video/' + this.get('id') + '/oembed', function(oembedRes) {
@@ -17,16 +19,13 @@ Video.reopenClass({
   resultSets: {},
 
   findQuery: function(params) {
-
-    params.sort = App.currentSortFilter.id
+    params.sort = App.SearchCriteria.getActiveFilter();
+    params.page = App.SearchCriteria.get('page');
 
     var queryId = parameterize(params);
     if (this.resultSets[queryId]) {
       return this.resultSets[queryId];
     }
-
-    console.log(params)
-    console.log(App.currentSortFilter)
 
     var results = this.fetchQuery(params);
     this.resultSets[queryId] = results;

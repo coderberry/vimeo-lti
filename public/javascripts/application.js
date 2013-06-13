@@ -4,21 +4,41 @@
 require('../vendor/jquery');
 require('../vendor/handlebars');
 require('../vendor/ember');
-require('../vendor/ember-data'); // delete if you don't want ember-data
-// require('../vendor/moment');
 
 var App = Ember.Application.create({ LOG_TRANSITIONS: true });
-App.Store = require('./store'); // delete if you don't want ember-data
 
-App.sortFilters = [
-  Ember.Object.create({ id: 'relevant', name: 'Relevant' }),
-  Ember.Object.create({ id: 'newest', name: 'Newest' }),
-  Ember.Object.create({ id: 'oldest', name: 'Oldest' }),
-  Ember.Object.create({ id: 'most_played', name: 'Most Played' }),
-  Ember.Object.create({ id: 'most_commented', name: 'Most Comments' }),
-  Ember.Object.create({ id: 'most_liked', name: 'Most Liked' })
-]
-App.currentSortFilter = Ember.Object.create({ id: 'relevant' })
+App.SearchCriteria = Ember.ArrayProxy.create({
+  content: [
+    Ember.Object.create({ isSelected: true,  id: 'relevant',       name: 'Relevant' }),
+    Ember.Object.create({ isSelected: false, id: 'newest',         name: 'Newest'   }),
+    Ember.Object.create({ isSelected: false, id: 'most_played',    name: 'Popular'  }),
+    Ember.Object.create({ isSelected: false, id: 'most_commented', name: 'Comments' }),
+    Ember.Object.create({ isSelected: false, id: 'most_liked',     name: 'Likes'    })
+  ],
+  page: '1',
+  q: '',
+  setActiveFilter: function(filterId) {
+    this.forEach(function(item, index, enumerable) {
+      item.set('isSelected', false);
+      if (item.get('id') == filterId) {
+        item.set('isSelected', true);
+      }
+    });
+    return this.getActiveFilter();
+  },
+  getActiveFilter: function() {
+    var activeItem =  this.find(function(item, index, enumerable) {
+      if (item.get('isSelected')) {
+        return item;
+      }
+    });
+    if (activeItem) {
+      return activeItem.get('id');
+    } else {
+      return this.setActiveFilter('relevant');
+    }
+  }
+});
 
 module.exports = App;
 
@@ -32,15 +52,14 @@ App.Router.map(function() {
 });
 
 
-});require.register("config/store.js", function(module, exports, require, global){
-// by default, persist application data to localStorage.
-require('../vendor/localstorage_adapter');
-
-module.exports = DS.Store.extend({
-  revision: 11,
-  //adapter: DS.RESTAdapter.create()
-  adapter: DS.LSAdapter.create()
+});require.register("controllers/search_controller.js", function(module, exports, require, global){
+var SearchController = Ember.ObjectController.extend({
+  filters: function() {
+    return App.SearchCriteria;
+  }.property()
 });
+
+module.exports = SearchController;
 
 
 });require.register("controllers/video_controller.js", function(module, exports, require, global){
@@ -120,11 +139,13 @@ var App = require('./config/app');
 require('./templates');
 
 
+App.SearchController = require('./controllers/search_controller');
 App.VideoController = require('./controllers/video_controller');
 App.Video = require('./models/video');
 App.ApplicationRoute = require('./routes/application_route');
 App.SearchRoute = require('./routes/search_route');
 App.VideoRoute = require('./routes/video_route');
+App.FiltersView = require('./views/filters_view');
 App.SearchView = require('./views/search_view');
 
 require('./config/routes');
@@ -135,8 +156,10 @@ module.exports = App;
 });require.register("models/video.js", function(module, exports, require, global){
 var Video = Ember.Object.extend({
   isLoaded: false,
-  currentPage: 1,
-
+  currentPage: function() {
+    return App.SearchCriteria.get('page');
+  }.property(),
+  
   oembed: function() {
     var model = this;
     $.getJSON('/api/video/' + this.get('id') + '/oembed', function(oembedRes) {
@@ -152,16 +175,13 @@ Video.reopenClass({
   resultSets: {},
 
   findQuery: function(params) {
-
-    params.sort = App.currentSortFilter.id
+    params.sort = App.SearchCriteria.getActiveFilter();
+    params.page = App.SearchCriteria.get('page');
 
     var queryId = parameterize(params);
     if (this.resultSets[queryId]) {
       return this.resultSets[queryId];
     }
-
-    console.log(params)
-    console.log(App.currentSortFilter)
 
     var results = this.fetchQuery(params);
     this.resultSets[queryId] = results;
@@ -237,7 +257,7 @@ var ApplicationRoute = Ember.Route.extend({
     search: function() {
       var q = this.controllerFor('application').get('q');
       if (q.length > 0) {
-        this.transitionTo('search', {q: q});  
+        this.transitionTo('search', {q: q});
       } else {
         this.transitionTo('index');
       }
@@ -254,20 +274,52 @@ var SearchRoute = Ember.Route.extend({
 
   setupController: function(controller, model) {
     this.controllerFor('application').set('q', model.q);
+    
+    App.SearchCriteria.set('page', model.page);
+    App.SearchCriteria.setActiveFilter(model.sort);
+    App.SearchCriteria.set('q', model.q);
+
     controller.set('model', {
       q: model.q,
-      videos: App.Video.findQuery({q: model.q})
+      sort: model.sort,
+      page: model.page,
+      videos: App.Video.findQuery(model)
     });
   },
   
   model: function(params) {
-    return {q: decodeURIComponent(params.q)};
+    console.log(params);
+    rawParams = params.q;
+    splitParams = rawParams.split('?');
+    ret = { q: decodeURIComponent(splitParams[0]) };
+    if (splitParams[1]) {
+      keyValues = splitParams[1].split('&');
+
+      $.each(keyValues, function(idx, keyValue) {
+        var kv = keyValue.split('=');
+        ret[kv[0]] = decodeURIComponent(kv[1]);
+      });
+    }
+    if (!ret['sort']) { ret['sort'] = App.SearchCriteria.getActiveFilter() };
+    if (!ret['page']) { ret['page'] = App.SearchCriteria.get('page') };
+
+    return ret;
   },
 
   serialize: function() {
     return {
       q: encodeURIComponent(this.controllerFor('application').get('q'))
     };
+  },
+  
+  events: {
+    applyFilter: function(filter) {
+      this.transitionTo('search', { 
+        q:    App.SearchCriteria.get('q'), 
+        page: App.SearchCriteria.get('page'), 
+        sort: filter.get('id') 
+      });
+    }
   }
   
 });
@@ -386,6 +438,16 @@ helpers = helpers || Ember.Handlebars.helpers; data = data || {};
   
 });
 
+Ember.TEMPLATES['filters'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
+this.compilerInfo = [3,'>= 1.0.0-rc.4'];
+helpers = helpers || Ember.Handlebars.helpers; data = data || {};
+  
+
+
+  data.buffer.push("  <li class=\"disabled\"><a href=\"#\">Relevant</a></li>\n  <li><a href=\"#\">Recent</a></li>\n  <li><a href=\"#\">Popular</a></li>\n");
+  
+});
+
 Ember.TEMPLATES['index'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [3,'>= 1.0.0-rc.4'];
 helpers = helpers || Ember.Handlebars.helpers; data = data || {};
@@ -399,9 +461,30 @@ helpers = helpers || Ember.Handlebars.helpers; data = data || {};
 Ember.TEMPLATES['search'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [3,'>= 1.0.0-rc.4'];
 helpers = helpers || Ember.Handlebars.helpers; data = data || {};
-  var buffer = '', stack1, hashContexts, hashTypes, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+  var buffer = '', stack1, hashTypes, hashContexts, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
 
 function program1(depth0,data) {
+  
+  var buffer = '', hashContexts, hashTypes;
+  data.buffer.push("\n    <li ");
+  hashContexts = {'class': depth0};
+  hashTypes = {'class': "STRING"};
+  data.buffer.push(escapeExpression(helpers.bindAttr.call(depth0, {hash:{
+    'class': ("isSelected:disabled")
+  },contexts:[],types:[],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(" style=\"width: 20%;\">\n      <a ");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers.action.call(depth0, "applyFilter", "", {hash:{},contexts:[depth0,depth0],types:["STRING","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push(">");
+  hashTypes = {};
+  hashContexts = {};
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "name", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</a>\n    </li>\n  ");
+  return buffer;
+  }
+
+function program3(depth0,data) {
   
   var buffer = '', stack1, stack2, hashContexts, hashTypes, options;
   data.buffer.push("\n  <li class=\"clearfix\">\n    ");
@@ -409,7 +492,7 @@ function program1(depth0,data) {
   hashTypes = {'classNames': "STRING"};
   options = {hash:{
     'classNames': ("thumb")
-  },inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0,depth0],types:["STRING","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
+  },inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0,depth0],types:["STRING","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
   stack2 = ((stack1 = helpers.linkTo),stack1 ? stack1.call(depth0, "video", "", options) : helperMissing.call(depth0, "linkTo", "video", "", options));
   if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
   data.buffer.push("\n    ");
@@ -420,7 +503,7 @@ function program1(depth0,data) {
   data.buffer.push("\n  </li>\n  ");
   return buffer;
   }
-function program2(depth0,data) {
+function program4(depth0,data) {
   
   var buffer = '', hashContexts, hashTypes;
   data.buffer.push("\n      <img ");
@@ -433,7 +516,7 @@ function program2(depth0,data) {
   return buffer;
   }
 
-function program4(depth0,data) {
+function program6(depth0,data) {
   
   var buffer = '', stack1, hashTypes, hashContexts, options;
   data.buffer.push("\n");
@@ -445,17 +528,22 @@ function program4(depth0,data) {
   return buffer;
   }
 
-  data.buffer.push("<ol id=\"results\">\n  ");
+  data.buffer.push("<div class=\"row-fluid\">\n  <ul id=\"filters\" class=\"nav nav-pills text-center span12\">\n  ");
+  hashTypes = {};
+  hashContexts = {};
+  stack1 = helpers.each.call(depth0, "filters", {hash:{},inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
+  data.buffer.push("\n  </ul>\n</div>\n\n<ol id=\"results\">\n  ");
   hashContexts = {'itemController': depth0};
   hashTypes = {'itemController': "STRING"};
   stack1 = helpers.each.call(depth0, "videos", {hash:{
     'itemController': ("video")
-  },inverse:self.noop,fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  },inverse:self.noop,fn:self.program(3, program3, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n</ol>\n\n");
   hashTypes = {};
   hashContexts = {};
-  stack1 = helpers.unless.call(depth0, "videos.isLoaded", {hash:{},inverse:self.noop,fn:self.program(4, program4, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  stack1 = helpers.unless.call(depth0, "videos.isLoaded", {hash:{},inverse:self.noop,fn:self.program(6, program6, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   return buffer;
   
@@ -464,11 +552,11 @@ function program4(depth0,data) {
 Ember.TEMPLATES['video'] = Ember.Handlebars.template(function anonymous(Handlebars,depth0,helpers,partials,data) {
 this.compilerInfo = [3,'>= 1.0.0-rc.4'];
 helpers = helpers || Ember.Handlebars.helpers; data = data || {};
-  var buffer = '', stack1, hashTypes, hashContexts, escapeExpression=this.escapeExpression, self=this, helperMissing=helpers.helperMissing;
+  var buffer = '', stack1, hashTypes, hashContexts, escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
 
 function program1(depth0,data) {
   
-  var buffer = '', stack1, stack2, hashContexts, hashTypes, options;
+  var buffer = '', stack1, hashContexts, hashTypes;
   data.buffer.push("\n<div id=\"video\">\n  <div class=\"above_link clearfix\">\n    <a href=\"javascript:history.back();\" class=\"back_button\">&laquo; search results</a>\n    <a ");
   hashContexts = {'href': depth0};
   hashTypes = {'href': "STRING"};
@@ -482,13 +570,11 @@ function program1(depth0,data) {
     'unescaped': ("true")
   },contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
-  data.buffer.push("\n  </div>\n\n  <div class=\"data\">\n    <h2 class=\"title\">");
+  data.buffer.push("\n  </div>\n\n  <div class=\"data\">\n    <h2 class=\"title\"><span class=\"faux_link\">");
   hashTypes = {};
   hashContexts = {};
-  options = {hash:{},inverse:self.noop,fn:self.program(2, program2, data),contexts:[depth0,depth0],types:["STRING","ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data};
-  stack2 = ((stack1 = helpers.linkTo),stack1 ? stack1.call(depth0, "video", "", options) : helperMissing.call(depth0, "linkTo", "video", "", options));
-  if(stack2 || stack2 === 0) { data.buffer.push(stack2); }
-  data.buffer.push("</h2>\n    <div class=\"duration\">");
+  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "title", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
+  data.buffer.push("</span></h2>\n    <div class=\"duration\">");
   hashTypes = {};
   hashContexts = {};
   data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "minutes", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
@@ -526,15 +612,8 @@ function program1(depth0,data) {
   data.buffer.push("</p>\n  </div>\n</div>\n\n");
   return buffer;
   }
-function program2(depth0,data) {
-  
-  var hashTypes, hashContexts;
-  hashTypes = {};
-  hashContexts = {};
-  data.buffer.push(escapeExpression(helpers._triageMustache.call(depth0, "title", {hash:{},contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data})));
-  }
 
-function program4(depth0,data) {
+function program3(depth0,data) {
   
   var buffer = '', stack1, hashTypes, hashContexts, options;
   data.buffer.push("\n");
@@ -548,7 +627,7 @@ function program4(depth0,data) {
 
   hashTypes = {};
   hashContexts = {};
-  stack1 = helpers['if'].call(depth0, "isLoaded", {hash:{},inverse:self.program(4, program4, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
+  stack1 = helpers['if'].call(depth0, "isLoaded", {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),contexts:[depth0],types:["ID"],hashContexts:hashContexts,hashTypes:hashTypes,data:data});
   if(stack1 || stack1 === 0) { data.buffer.push(stack1); }
   data.buffer.push("\n");
   return buffer;
@@ -49882,6 +49961,18 @@ DS.LSAdapter = DS.Adapter.extend(Ember.Evented, {
         });
     }
 }).call(this); 
+});require.register("views/filters_view.js", function(module, exports, require, global){
+var FiltersView = Ember.View.extend({
+  tagName: 'ul',
+  classNameBindings: ['isEnabled::disabled'],
+  classNames: ['nav', 'nav-pills'],
+  templateName: 'filters',
+  isEnabled: false
+});
+
+module.exports = FiltersView;
+
+
 });require.register("views/search_view.js", function(module, exports, require, global){
 var SearchView = Ember.View.extend({
   didInsertElement: function() {

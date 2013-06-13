@@ -47,16 +47,21 @@ class VimeoLti < Sinatra::Base
 
   get '/api/search' do
     content_type :json
+    puts "---------"
+    puts params.inspect
+    puts "---------"
     if params[:q]
       # return nil unless params[:q]
       begin
-        results = @client.search(params[:q], {
+        criteria = {
           :page          => params[:page] || 1,
           :per_page      => 24,
           :full_response => 1,
           :sort          => params[:sort] || "relevant",
           :user_id       => nil
-        })
+        }
+        puts criteria
+        results = @client.search(params[:q], criteria)
         results['videos']['video'].to_json
       rescue => ex
         puts ex.inspect

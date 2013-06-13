@@ -1,21 +1,41 @@
 require('../vendor/jquery');
 require('../vendor/handlebars');
 require('../vendor/ember');
-require('../vendor/ember-data'); // delete if you don't want ember-data
-// require('../vendor/moment');
 
 var App = Ember.Application.create({ LOG_TRANSITIONS: true });
-App.Store = require('./store'); // delete if you don't want ember-data
 
-App.sortFilters = [
-  Ember.Object.create({ id: 'relevant', name: 'Relevant' }),
-  Ember.Object.create({ id: 'newest', name: 'Newest' }),
-  Ember.Object.create({ id: 'oldest', name: 'Oldest' }),
-  Ember.Object.create({ id: 'most_played', name: 'Most Played' }),
-  Ember.Object.create({ id: 'most_commented', name: 'Most Comments' }),
-  Ember.Object.create({ id: 'most_liked', name: 'Most Liked' })
-]
-App.currentSortFilter = Ember.Object.create({ id: 'relevant' })
+App.SearchCriteria = Ember.ArrayProxy.create({
+  content: [
+    Ember.Object.create({ isSelected: true,  id: 'relevant',       name: 'Relevant' }),
+    Ember.Object.create({ isSelected: false, id: 'newest',         name: 'Newest'   }),
+    Ember.Object.create({ isSelected: false, id: 'most_played',    name: 'Popular'  }),
+    Ember.Object.create({ isSelected: false, id: 'most_commented', name: 'Comments' }),
+    Ember.Object.create({ isSelected: false, id: 'most_liked',     name: 'Likes'    })
+  ],
+  page: '1',
+  q: '',
+  setActiveFilter: function(filterId) {
+    this.forEach(function(item, index, enumerable) {
+      item.set('isSelected', false);
+      if (item.get('id') == filterId) {
+        item.set('isSelected', true);
+      }
+    });
+    return this.getActiveFilter();
+  },
+  getActiveFilter: function() {
+    var activeItem =  this.find(function(item, index, enumerable) {
+      if (item.get('isSelected')) {
+        return item;
+      }
+    });
+    if (activeItem) {
+      return activeItem.get('id');
+    } else {
+      return this.setActiveFilter('relevant');
+    }
+  }
+});
 
 module.exports = App;
 
